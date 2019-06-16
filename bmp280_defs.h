@@ -365,7 +365,7 @@ extern "C" {
 #define BMP280_ST_PRESSURE_RESOLUTION_INT32    UINT8_C(100)
 
 /*! @name Function pointer type definitions */
-typedef int8_t (*bmp280_com_fptr_t)(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+typedef int8_t (*bmp280_com_fptr_t)(void *ctx, uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
 typedef void (*bmp280_delay_fptr_t)(uint32_t period);
 
 /*! @name Calibration parameters' structure */
@@ -421,6 +421,7 @@ struct bmp280_dev
     bmp280_delay_fptr_t delay_ms;
     struct bmp280_calib_param calib_param;
     struct bmp280_config conf;
+    void *userctx;
 };
 
 #ifdef __cplusplus
