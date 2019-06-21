@@ -384,7 +384,7 @@ struct bmp280_calib_param
     int16_t dig_p8;
     int16_t dig_p9;
     int32_t t_fine;
-};
+} __attribute__((packed));
 
 /*! @name Sensor configuration structure */
 struct bmp280_config
