@@ -185,6 +185,9 @@ int8_t bmp280_get_power_mode(uint8_t *mode, const struct bmp280_dev *dev);
  */
 int8_t bmp280_set_power_mode(uint8_t mode, struct bmp280_dev *dev);
 
+int8_t bmp280_raw_to_uncomp(struct bmp280_uncomp_data *uncomp_data, const uint8_t raw[6]);
+int8_t bmp280_get_raw_data(uint8_t raw[6], const struct bmp280_dev *dev);
+
 /*!
  * @brief This API reads the temperature and pressure data registers.
  * It gives the raw temperature and pressure data.

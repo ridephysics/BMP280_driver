@@ -428,6 +428,30 @@ int8_t bmp280_set_power_mode(uint8_t mode, struct bmp280_dev *dev)
     return rslt;
 }
 
+int8_t bmp280_raw_to_uncomp(struct bmp280_uncomp_data *uncomp_data, const uint8_t raw[6]) {
+    uncomp_data->uncomp_press =
+        (int32_t) ((((uint32_t) (raw[0])) << 12) | (((uint32_t) (raw[1])) << 4) | ((uint32_t) raw[2] >> 4));
+    uncomp_data->uncomp_temp =
+        (int32_t) ((((int32_t) (raw[3])) << 12) | (((int32_t) (raw[4])) << 4) | (((int32_t) (raw[5])) >> 4));
+    return st_check_boundaries((int32_t)uncomp_data->uncomp_temp, (int32_t)uncomp_data->uncomp_press);
+}
+
+int8_t bmp280_get_raw_data(uint8_t raw[6], const struct bmp280_dev *dev) {
+    int8_t rslt;
+
+    rslt = null_ptr_check(dev);
+    if ((rslt == BMP280_OK) && (raw != NULL))
+    {
+        rslt = bmp280_get_regs(BMP280_PRES_MSB_ADDR, raw, 6, dev);
+    }
+    else
+    {
+        rslt = BMP280_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
 /*!
  * @brief This API reads the temperature and pressure data registers.
  * It gives the raw temperature and pressure data .
@@ -443,11 +467,7 @@ int8_t bmp280_get_uncomp_data(struct bmp280_uncomp_data *uncomp_data, const stru
         rslt = bmp280_get_regs(BMP280_PRES_MSB_ADDR, temp, 6, dev);
         if (rslt == BMP280_OK)
         {
-            uncomp_data->uncomp_press =
-                (int32_t) ((((uint32_t) (temp[0])) << 12) | (((uint32_t) (temp[1])) << 4) | ((uint32_t) temp[2] >> 4));
-            uncomp_data->uncomp_temp =
-                (int32_t) ((((int32_t) (temp[3])) << 12) | (((int32_t) (temp[4])) << 4) | (((int32_t) (temp[5])) >> 4));
-            rslt = st_check_boundaries((int32_t)uncomp_data->uncomp_temp, (int32_t)uncomp_data->uncomp_press);
+            rslt = bmp280_raw_to_uncomp(uncomp_data, temp);
         }
         else
         {
