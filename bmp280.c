@@ -466,24 +466,23 @@ int8_t bmp280_get_uncomp_data(struct bmp280_uncomp_data *uncomp_data, const stru
  * @brief This API is used to get the compensated temperature from
  * uncompensated temperature. This API uses 32 bit integers.
  */
-int8_t bmp280_get_comp_temp_32bit(int32_t *comp_temp, int32_t uncomp_temp, struct bmp280_dev *dev)
+int8_t bmp280_get_comp_temp_32bit(int32_t *comp_temp, int32_t uncomp_temp, struct bmp280_calib_param *calib)
 {
     int32_t var1, var2;
     int8_t rslt;
 
-    rslt = null_ptr_check(dev);
-    if (rslt == BMP280_OK)
+    if (calib)
     {
         var1 =
-            ((((uncomp_temp / 8) - ((int32_t) dev->calib_param.dig_t1 << 1))) * ((int32_t) dev->calib_param.dig_t2)) /
+            ((((uncomp_temp / 8) - ((int32_t) calib->dig_t1 << 1))) * ((int32_t) calib->dig_t2)) /
             2048;
         var2 =
-            (((((uncomp_temp / 16) - ((int32_t) dev->calib_param.dig_t1)) *
-               ((uncomp_temp / 16) - ((int32_t) dev->calib_param.dig_t1))) / 4096) *
-             ((int32_t) dev->calib_param.dig_t3)) /
+            (((((uncomp_temp / 16) - ((int32_t) calib->dig_t1)) *
+               ((uncomp_temp / 16) - ((int32_t) calib->dig_t1))) / 4096) *
+             ((int32_t) calib->dig_t3)) /
             16384;
-        dev->calib_param.t_fine = var1 + var2;
-        *comp_temp = (dev->calib_param.t_fine * 5 + 128) / 256;
+        calib->t_fine = var1 + var2;
+        *comp_temp = (calib->t_fine * 5 + 128) / 256;
         rslt = BMP280_OK;
     }
     else
@@ -499,22 +498,21 @@ int8_t bmp280_get_comp_temp_32bit(int32_t *comp_temp, int32_t uncomp_temp, struc
  * @brief This API is used to get the compensated pressure from
  * uncompensated pressure. This API uses 32 bit integers.
  */
-int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, const struct bmp280_dev *dev)
+int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, const struct bmp280_calib_param *calib)
 {
     int32_t var1, var2;
     int8_t rslt;
 
-    rslt = null_ptr_check(dev);
-    if (rslt == BMP280_OK)
+    if (calib)
     {
-        var1 = (((int32_t) dev->calib_param.t_fine) / 2) - (int32_t) 64000;
-        var2 = (((var1 / 4) * (var1 / 4)) / 2048) * ((int32_t) dev->calib_param.dig_p6);
-        var2 = var2 + ((var1 * ((int32_t) dev->calib_param.dig_p5)) * 2);
-        var2 = (var2 / 4) + (((int32_t) dev->calib_param.dig_p4) * 65536);
+        var1 = (((int32_t) calib->t_fine) / 2) - (int32_t) 64000;
+        var2 = (((var1 / 4) * (var1 / 4)) / 2048) * ((int32_t)calib->dig_p6);
+        var2 = var2 + ((var1 * ((int32_t) calib->dig_p5)) * 2);
+        var2 = (var2 / 4) + (((int32_t) calib->dig_p4) * 65536);
         var1 =
-            (((dev->calib_param.dig_p3 * (((var1 / 4) * (var1 / 4)) / 8192)) / 8) +
-             ((((int32_t) dev->calib_param.dig_p2) * var1) / 2)) / 262144;
-        var1 = ((((32768 + var1)) * ((int32_t) dev->calib_param.dig_p1)) / 32768);
+            (((calib->dig_p3 * (((var1 / 4) * (var1 / 4)) / 8192)) / 8) +
+             ((((int32_t) calib->dig_p2) * var1) / 2)) / 262144;
+        var1 = ((((32768 + var1)) * ((int32_t) calib->dig_p1)) / 32768);
         *comp_pres = (((uint32_t) (((int32_t)1048576) - uncomp_pres) - (var2 / 4096))) * 3125;
 
         /* Avoid exception caused by division with zero */
@@ -529,10 +527,10 @@ int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, cons
             {
                 *comp_pres = (*comp_pres / (uint32_t) var1) * 2;
             }
-            var1 = (((int32_t) dev->calib_param.dig_p9) * ((int32_t) (((*comp_pres / 8) * (*comp_pres / 8)) / 8192))) /
+            var1 = (((int32_t) calib->dig_p9) * ((int32_t) (((*comp_pres / 8) * (*comp_pres / 8)) / 8192))) /
                    4086;
-            var2 = (((int32_t) (*comp_pres / 4)) * ((int32_t) dev->calib_param.dig_p8)) / 8192;
-            *comp_pres = (uint32_t) ((int32_t) *comp_pres + ((var1 + var2 + dev->calib_param.dig_p7) / 16));
+            var2 = (((int32_t) (*comp_pres / 4)) * ((int32_t) calib->dig_p8)) / 8192;
+            *comp_pres = (uint32_t) ((int32_t) *comp_pres + ((var1 + var2 + calib->dig_p7) / 16));
             rslt = BMP280_OK;
         }
         else
@@ -540,6 +538,11 @@ int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, cons
             *comp_pres = 0;
             rslt = BMP280_E_32BIT_COMP_PRESS;
         }
+    }
+    else
+    {
+        *comp_pres = 0;
+        rslt = BMP280_E_32BIT_COMP_PRESS;
     }
 
     return rslt;
@@ -551,28 +554,27 @@ int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, cons
  * @brief This API is used to get the compensated pressure from
  * uncompensated pressure. This API uses 64 bit integers.
  */
-int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const struct bmp280_dev *dev)
+int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const struct bmp280_calib_param *calib)
 {
     int64_t var1, var2, p;
     int8_t rslt;
 
-    rslt = null_ptr_check(dev);
-    if (rslt == BMP280_OK)
+    if (calib)
     {
-        var1 = ((int64_t) (dev->calib_param.t_fine)) - 128000;
-        var2 = var1 * var1 * (int64_t) dev->calib_param.dig_p6;
-        var2 = var2 + ((var1 * (int64_t) dev->calib_param.dig_p5) * 131072);
-        var2 = var2 + (((int64_t) dev->calib_param.dig_p4) * 34359738368);
-        var1 = ((var1 * var1 * (int64_t) dev->calib_param.dig_p3) / 256) +
-               ((var1 * (int64_t) dev->calib_param.dig_p2) * 4096);
-        var1 = ((INT64_C(0x800000000000) + var1) * ((int64_t) dev->calib_param.dig_p1)) / 8589934592;
+        var1 = ((int64_t) (calib->t_fine)) - 128000;
+        var2 = var1 * var1 * (int64_t) calib->dig_p6;
+        var2 = var2 + ((var1 * (int64_t) calib->dig_p5) * 131072);
+        var2 = var2 + (((int64_t) calib->dig_p4) * 34359738368);
+        var1 = ((var1 * var1 * (int64_t) calib->dig_p3) / 256) +
+               ((var1 * (int64_t) calib->dig_p2) * 4096);
+        var1 = ((INT64_C(0x800000000000) + var1) * ((int64_t) calib->dig_p1)) / 8589934592;
         if (var1 != 0)
         {
             p = 1048576 - uncomp_pres;
             p = (((((p << 31)) - var2) * 3125) / var1);
-            var1 = (((int64_t) dev->calib_param.dig_p9) * (p / 8192) * (p / 8192)) / 33554432;
-            var2 = (((int64_t) dev->calib_param.dig_p8) * p) / 524288;
-            p = ((p + var1 + var2) / 256) + (((int64_t)dev->calib_param.dig_p7) * 16);
+            var1 = (((int64_t) calib->dig_p9) * (p / 8192) * (p / 8192)) / 33554432;
+            var2 = (((int64_t) calib->dig_p8) * p) / 524288;
+            p = ((p + var1 + var2) / 256) + (((int64_t)calib->dig_p7) * 16);
             *pressure = (uint32_t)p;
             rslt = BMP280_OK;
         }
@@ -581,6 +583,11 @@ int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const
             *pressure = 0;
             rslt = BMP280_E_64BIT_COMP_PRESS;
         }
+    }
+    else
+    {
+        *pressure = 0;
+        rslt = BMP280_E_64BIT_COMP_PRESS;
     }
 
     return rslt;
@@ -594,21 +601,20 @@ int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const
  * @brief This API is used to get the compensated temperature from
  * uncompensated temperature. This API uses double floating precision.
  */
-int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, struct bmp280_dev *dev)
+int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, struct bmp280_calib_param *calib)
 {
     double var1, var2;
     int8_t rslt;
 
-    rslt = null_ptr_check(dev);
-    if (rslt == BMP280_OK)
+    if (calib)
     {
-        var1 = (((double) uncomp_temp) / 16384.0 - ((double) dev->calib_param.dig_t1) / 1024.0) *
-               ((double) dev->calib_param.dig_t2);
+        var1 = (((double) uncomp_temp) / 16384.0 - ((double) calib->dig_t1) / 1024.0) *
+               ((double) calib->dig_t2);
         var2 =
-            ((((double) uncomp_temp) / 131072.0 - ((double) dev->calib_param.dig_t1) / 8192.0) *
-             (((double) uncomp_temp) / 131072.0 - ((double) dev->calib_param.dig_t1) / 8192.0)) *
-            ((double) dev->calib_param.dig_t3);
-        dev->calib_param.t_fine = (int32_t) (var1 + var2);
+            ((((double) uncomp_temp) / 131072.0 - ((double) calib->dig_t1) / 8192.0) *
+             (((double) uncomp_temp) / 131072.0 - ((double) calib->dig_t1) / 8192.0)) *
+            ((double) calib->dig_t3);
+        calib->t_fine = (int32_t) (var1 + var2);
         *temperature = ((var1 + var2) / 5120.0);
     }
     else
@@ -624,35 +630,39 @@ int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, str
  * @brief This API is used to get the compensated pressure from
  * uncompensated pressure. This API uses double floating precision.
  */
-int8_t bmp280_get_comp_pres_double(double *pressure, int32_t uncomp_pres, const struct bmp280_dev *dev)
+int8_t bmp280_get_comp_pres_double(double *pressure, int32_t uncomp_pres, const struct bmp280_calib_param *calib)
 {
     double var1, var2;
     int8_t rslt;
 
-    rslt = null_ptr_check(dev);
-    if (rslt == BMP280_OK)
+    if (calib)
     {
-        var1 = ((double) dev->calib_param.t_fine / 2.0) - 64000.0;
-        var2 = var1 * var1 * ((double) dev->calib_param.dig_p6) / 32768.0;
-        var2 = var2 + var1 * ((double) dev->calib_param.dig_p5) * 2.0;
-        var2 = (var2 / 4.0) + (((double) dev->calib_param.dig_p4) * 65536.0);
+        var1 = ((double) calib->t_fine / 2.0) - 64000.0;
+        var2 = var1 * var1 * ((double) calib->dig_p6) / 32768.0;
+        var2 = var2 + var1 * ((double) calib->dig_p5) * 2.0;
+        var2 = (var2 / 4.0) + (((double) calib->dig_p4) * 65536.0);
         var1 =
-            (((double) dev->calib_param.dig_p3) * var1 * var1 / 524288.0 + ((double) dev->calib_param.dig_p2) * var1) /
+            (((double) calib->dig_p3) * var1 * var1 / 524288.0 + ((double) calib->dig_p2) * var1) /
             524288.0;
-        var1 = (1.0 + var1 / 32768.0) * ((double) dev->calib_param.dig_p1);
+        var1 = (1.0 + var1 / 32768.0) * ((double) calib->dig_p1);
         uncomp_pres = (uint32_t)(1048576.0 - (double) uncomp_pres);
         if (var1 < 0 || var1 > 0)
         {
             uncomp_pres = (uint32_t)((uncomp_pres - (var2 / 4096.0)) * 6250.0 / var1);
-            var1 = ((double) dev->calib_param.dig_p9) * uncomp_pres * uncomp_pres / 2147483648.0;
-            var2 = uncomp_pres * ((double) dev->calib_param.dig_p8) / 32768.0;
-            *pressure = (uncomp_pres + (var1 + var2 + ((double) dev->calib_param.dig_p7)) / 16.0);
+            var1 = ((double) calib->dig_p9) * uncomp_pres * uncomp_pres / 2147483648.0;
+            var2 = uncomp_pres * ((double) calib->dig_p8) / 32768.0;
+            *pressure = (uncomp_pres + (var1 + var2 + ((double) calib->dig_p7)) / 16.0);
         }
         else
         {
             *pressure = 0;
             rslt = BMP280_E_DOUBLE_COMP_PRESS;
         }
+    }
+    else
+    {
+        *pressure = 0;
+        rslt = BMP280_E_DOUBLE_COMP_PRESS;
     }
 
     return rslt;
@@ -710,11 +720,11 @@ int8_t bmp280_selftest(struct bmp280_dev *dev)
             if (rslt == BMP280_OK)
             {
                 /* Get compensated temperature */
-                rslt = bmp280_get_comp_temp_32bit(&temperature, uncom.uncomp_temp, dev);
+                rslt = bmp280_get_comp_temp_32bit(&temperature, uncom.uncomp_temp, &dev->calib_param);
                 if (rslt == BMP280_OK)
                 {
                     /* Get compensated pressure */
-                    rslt = bmp280_get_comp_pres_32bit(&pressure, uncom.uncomp_press, dev);
+                    rslt = bmp280_get_comp_pres_32bit(&pressure, uncom.uncomp_press, &dev->calib_param);
                     if (rslt == BMP280_OK)
                     {
                         /* Checks compensated temperature and pressure are within the range */

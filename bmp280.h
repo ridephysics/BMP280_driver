@@ -210,7 +210,7 @@ int8_t bmp280_get_uncomp_data(struct bmp280_uncomp_data *uncomp_data, const stru
  * @return Result of API execution
  * @retval Zero for Success, non-zero otherwise.
  */
-int8_t bmp280_get_comp_temp_32bit(int32_t *comp_temp, int32_t uncomp_temp, struct bmp280_dev *dev);
+int8_t bmp280_get_comp_temp_32bit(int32_t *comp_temp, int32_t uncomp_temp, struct bmp280_calib_param *calib);
 
 /*!
  * @brief This API is used to get the compensated pressure from
@@ -225,7 +225,7 @@ int8_t bmp280_get_comp_temp_32bit(int32_t *comp_temp, int32_t uncomp_temp, struc
  * @return Result of API execution
  * @retval Zero for Success, non-zero otherwise.
  */
-int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, const struct bmp280_dev *dev);
+int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, const struct bmp280_calib_param *calib);
 
 #ifndef BMP280_DISABLE_64BIT_COMPENSATION
 
@@ -243,7 +243,7 @@ int8_t bmp280_get_comp_pres_32bit(uint32_t *comp_pres, int32_t uncomp_pres, cons
  * @return Result of API execution
  * @retval Zero for Success, non-zero otherwise.
  */
-int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const struct bmp280_dev *dev);
+int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const struct bmp280_calib_param *calib);
 
 #endif /* BMP280_DISABLE_64BIT_COMPENSATION */
 
@@ -262,7 +262,7 @@ int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const
  * @return Result of API execution
  * @retval Zero for Success, non-zero otherwise.
  */
-int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, struct bmp280_dev *dev);
+int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, struct bmp280_calib_param *calib);
 
 /*!
  * @brief This API is used to get the compensated pressure from
@@ -277,7 +277,7 @@ int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, str
  * @return Result of API execution
  * @retval Zero for Success, non-zero otherwise.
  */
-int8_t bmp280_get_comp_pres_double(double *pressure, int32_t uncomp_pres, const struct bmp280_dev *dev);
+int8_t bmp280_get_comp_pres_double(double *pressure, int32_t uncomp_pres, const struct bmp280_calib_param *calib);
 
 #endif /* BMP280_DISABLE_DOUBLE_COMPENSATION */
 
