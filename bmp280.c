@@ -624,7 +624,7 @@ int8_t bmp280_get_comp_pres_64bit(uint32_t *pressure, int32_t uncomp_pres, const
 int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, struct bmp280_calib_param *calib)
 {
     double var1, var2;
-    int8_t rslt;
+    int8_t rslt = BMP280_OK;
 
     if (calib)
     {
@@ -653,7 +653,7 @@ int8_t bmp280_get_comp_temp_double(double *temperature, int32_t uncomp_temp, str
 int8_t bmp280_get_comp_pres_double(double *pressure, int32_t uncomp_pres, const struct bmp280_calib_param *calib)
 {
     double var1, var2;
-    int8_t rslt;
+    int8_t rslt = BMP280_OK;
 
     if (calib)
     {
